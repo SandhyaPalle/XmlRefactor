@@ -88,6 +88,9 @@
     <Compile Include="Rules\BPFixers\RuleXMLCommentsCleanUp.cs" />
     <Compile Include="Rules\CIT\RuleConvertToCheckInTestCases.cs" />
     <Compile Include="Rules\CIT\RuleCheckInTestCases.cs" />
+    <Compile Include="Rules\Collectors\RuleCollectClassDataForClassesAndTables.cs" />
+    <Compile Include="Rules\Collectors\RuleCollectClassDataForForms.cs" />
+    <Compile Include="Rules\Collectors\RuleCollectMethodsData.cs" />
     <Compile Include="Rules\Collectors\RuleCollectObsoleteMetaData.cs" />
     <Compile Include="Rules\Collectors\RuleCollectOverriddingMethodNames.cs" />
     <Compile Include="Rules\Collectors\RuleCollectObsoleteClasses.cs" />
@@ -95,7 +98,13 @@
     <Compile Include="Rules\Collectors\RuleCollectMethodNames.cs" />
     <Compile Include="Rules\Extensibility\RuleReplaceableSwitch.cs" />
     <Compile Include="Rules\InventDim\RuleInventDim.cs" />
+    <Compile Include="Rules\LockDown\RuleLockDownClassAccessModifiers.cs" />
+    <Compile Include="Rules\LockDown\RuleLockDownClassMethodAccessModifiers.cs" />
+    <Compile Include="Rules\LockDown\RuleLockDownFormAccessModifiers.cs" />
+    <Compile Include="Rules\LockDown\RuleLockDownFormMethodAccessModifiers.cs" />
     <Compile Include="Rules\LockDown\RuleLockDownInternalUseOnly.cs" />
+    <Compile Include="Rules\LockDown\RuleLockDownTableAccessModifiers.cs" />
+    <Compile Include="Rules\LockDown\RuleLockDownTableMethodAccessModifiers.cs" />
     <Compile Include="Rules\Metadata\RuleAddLink.cs" />
     <Compile Include="Rules\Metadata\RuleArgsMenuItem.cs" />
     <Compile Include="Rules\Metadata\RuleHardSeal.cs" />
@@ -168,6 +177,7 @@
     <Content Include="RulesInput\ObsoleteIn73.txt" />
     <Content Include="RulesInput\ObsoleteIn80.txt" />
     <Content Include="RulesInput\ObsoleteIn81.txt" />
+    <Content Include="RulesInput\PublicMethodsToLockDown1.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
