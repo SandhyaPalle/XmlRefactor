@@ -170,6 +170,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="RulesInput\InternalFormMethods.txt" />
+    <Content Include="RulesInput\InternalClassMethods.txt" />
+    <Content Include="RulesInput\InternalTableMethods.txt" />
     <Content Include="RulesInput\ObsoleteIn100.txt" />
     <Content Include="RulesInput\ObsoleteIn107.txt" />
     <Content Include="RulesInput\ObsoleteIn70.txt" />
@@ -177,6 +180,9 @@
     <Content Include="RulesInput\ObsoleteIn73.txt" />
     <Content Include="RulesInput\ObsoleteIn80.txt" />
     <Content Include="RulesInput\ObsoleteIn81.txt" />
+    <Content Include="RulesInput\OverRiddenFormMethods.txt" />
+    <Content Include="RulesInput\OverRiddenClassMethods.txt" />
+    <Content Include="RulesInput\OverRiddenTableMethods.txt" />
     <Content Include="RulesInput\PublicMethodsToLockDown1.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

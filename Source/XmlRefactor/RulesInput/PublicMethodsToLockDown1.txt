@@ -200,3 +200,5 @@ initialize
 lookup
 clicked
 runBase
+resolveReference
+lookupReference

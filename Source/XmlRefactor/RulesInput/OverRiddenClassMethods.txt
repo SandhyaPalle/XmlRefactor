@@ -1,0 +1,7 @@
+﻿defaultSource
+initialized
+initParmDefault
+New
+parmQuery
+preRunModifyContract
+selectionChanged
