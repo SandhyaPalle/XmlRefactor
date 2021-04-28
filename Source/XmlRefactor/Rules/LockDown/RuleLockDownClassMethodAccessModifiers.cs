@@ -7,7 +7,8 @@ namespace XmlRefactor
 {
     class RuleLockDownClassMethodAccessModifiers : Rule
     {
-        HashSet<string> overRiddenClassMethodHashSet = new HashSet<string>();
+        HashSet<string> overRiddenPublicClassMethodHashSet = new HashSet<string>();
+        HashSet<string> overRiddenProtectedClassMethodHashSet = new HashSet<string>();
         HashSet<string> internalClassMethodHashSet = new HashSet<string>();
 
         string hookableAttribute = "Hookable(false)";
@@ -48,14 +49,18 @@ namespace XmlRefactor
         {
             return this.Run(_input, 0);
         }
-        
-        private bool isOverRiddenMethod(string methodName)
+
+        private bool isOverRiddenPublicMethod(string methodName)
         {
-            return overRiddenClassMethodHashSet.Contains(methodName);
+            return overRiddenPublicClassMethodHashSet.Contains(methodName);
+        }
+        private bool isOverRiddenProtectedMethod(string methodName)
+        {
+            return overRiddenProtectedClassMethodHashSet.Contains(methodName);
         }
         private bool isInternalMethod(string className, string methodName)
         {
-            var classMethodPath = string.Concat("/Classes/", className, "/Methods/", methodName);
+            var classMethodPath = string.Concat(className, "/", methodName);
             return internalClassMethodHashSet.Contains(classMethodPath);
         }
         public string Run(string _input, int _startAt = 0)
@@ -66,10 +71,20 @@ namespace XmlRefactor
             {
                 string methodName = match.Groups[1].Value.Trim();
                 var stringToUpdate = match.Value;
+                string classPath = MetaData.AOTPath("");
+                string className = classPath.Substring(classPath.LastIndexOf("\\") + 1);
 
                 if (methodName != "classDeclaration")
                 {
-                    if (this.isOverRiddenMethod(methodName) || match.Value.Contains("super("))
+                    if (this.isOverRiddenPublicMethod(methodName)
+                     || (match.Value.Contains("super(") && methodName != "new")
+                     || match.Value.Contains("next ")
+                     || stringToUpdate.Contains("FormControlEventHandler")
+                     || stringToUpdate.Contains("FormEventHandler")
+                     || stringToUpdate.Contains("FormDataSourceEventHandler")
+                     || stringToUpdate.Contains("DataEventHandler")
+                     || stringToUpdate.Contains("FormDataFieldEventHandler")
+                     || stringToUpdate.Contains("PostHandlerFor"))
                     {
                         if (!stringToUpdate.Contains("Replaceable") &&
                             !stringToUpdate.Contains("QueryRangeFunction") &&
@@ -82,7 +97,7 @@ namespace XmlRefactor
                             Hits++;
                         }
                     }
-                    else if (match.Value.Contains("next "))
+                    else if (this.isOverRiddenProtectedMethod(methodName))
                     {
                         _input = this.appendAttributeHookableFalse(_input, stringToUpdate, methodName);
                         _input = this.replaceAccessModifierForOverriddenMethods(_input, stringToUpdate, methodName);
@@ -90,20 +105,30 @@ namespace XmlRefactor
                     }
                     else if (match.Value.Contains("display "))
                     {
-                        _input = this.replaceAccessModifierForDisplayMethods(_input, stringToUpdate, methodName);
-                        Hits++;
+                        _input = removeAttributeHookableFalse(_input, stringToUpdate, methodName);
+                        if (!this.isInternalMethod(className, methodName))
+                        {
+                            _input = this.replaceAccessModifierForDisplayMethods(_input, stringToUpdate, methodName);
+                            Hits++;
+                        }
+                        else
+                        {
+                            _input = this.replaceAccessModifierForInternalMethods(_input, stringToUpdate, methodName);
+                            Hits++;
+                        }
                     }
-                    else if (match.Value.Contains(" parm"))
+                    else if (methodName.Contains(" parm"))
                     {
+                        _input = removeAttributeHookableFalse(_input, stringToUpdate, methodName);
                         _input = this.replaceAccessModifierForParmMethods(_input, stringToUpdate, methodName);
                         Hits++;
                     }
-                    else if (!match.Value.Contains("extends "))
+                    else if (!match.Value.Contains(" extends "))
                     {
-                        string classPath = MetaData.AOTPath("");
-                        string className = classPath.Substring(classPath.LastIndexOf("\\") + 1);
-
-                        if (this.isInternalMethod(className, methodName))
+                        _input = removeAttributeHookableFalse(_input, stringToUpdate, methodName);
+                        if (this.isInternalMethod(className, methodName)
+                            || stringToUpdate.Contains("SRSReportDataSetAttribute")
+                            || stringToUpdate.Contains("SubscribesTo"))
                         {
                             _input = this.replaceAccessModifierForInternalMethods(_input, stringToUpdate, methodName);
                             Hits++;
@@ -124,13 +149,23 @@ namespace XmlRefactor
 
         private void initializeClassMethodHashSet()
         {
-            var overRiddenClassMethods = File.ReadAllLines(@"../../RulesInput/OverRiddenClassMethods.txt");
-            overRiddenClassMethodHashSet.Clear();
-            foreach (var method in overRiddenClassMethods)
+            var overRiddenPublicClassMethods = File.ReadAllLines(@"../../RulesInput/OverRiddenPublicClassMethods.txt");
+            overRiddenPublicClassMethodHashSet.Clear();
+            foreach (var method in overRiddenPublicClassMethods)
             {
-                if (!overRiddenClassMethodHashSet.Contains(method))
+                if (!overRiddenPublicClassMethodHashSet.Contains(method))
                 {
-                    overRiddenClassMethodHashSet.Add(method);
+                    overRiddenPublicClassMethodHashSet.Add(method);
+                }
+            }
+
+            var overRiddenProtectedClassMethods = File.ReadAllLines(@"../../RulesInput/OverRiddenProtectedClassMethods.txt");
+            overRiddenProtectedClassMethodHashSet.Clear();
+            foreach (var method in overRiddenProtectedClassMethods)
+            {
+                if (!overRiddenProtectedClassMethodHashSet.Contains(method))
+                {
+                    overRiddenProtectedClassMethodHashSet.Add(method);
                 }
             }
 
@@ -196,12 +231,7 @@ namespace XmlRefactor
 
             int signatureLinePosInSource = this.signatureLineStartPos(source, _methodName) + 1;
             string theline = source.Substring(signatureLinePosInSource);
-
-            if (theline.ToLowerInvariant().Contains(privateAttribute))
-            {
-                return _input;
-            }
-
+            
             int attributeEndPosInSource = this.attributeEndPos(source, signatureLinePosInSource);
 
             if (attributeEndPosInSource > 0)
@@ -218,6 +248,26 @@ namespace XmlRefactor
             return _input;
         }
 
+        private string removeAttributeHookableFalse(string _input, string source, string _methodName)
+        {
+            if (!source.Contains(hookableAttribute))
+            {
+                return _input;
+            }
+            string newline = "";
+            if (source.Contains("[" + hookableAttribute + "]"))
+            {
+                newline = source.Replace("[" + hookableAttribute + "]", "");
+                _input = _input.Replace(source, newline);
+            }
+            else
+            {
+                newline = source.Replace(", " + hookableAttribute, "");
+                _input = _input.Replace(source, newline);
+            }
+            return _input;
+        }
+
         private string replaceAccessModifierForOverriddenMethods(string _input, string source, string _methodName)
         {
             if (source.Contains(publicAttribute))
@@ -228,10 +278,25 @@ namespace XmlRefactor
             int signatureLinePosInSource = this.signatureLineStartPos(source, _methodName) + 1;
             string theline = source.Substring(signatureLinePosInSource);
             string newline = "";
-
+            
             if (theline.ToLowerInvariant().Contains(publicAttribute))
             {
                 return _input;
+            }
+            else if (theline.ToLowerInvariant().Contains(internalAttribute))
+            {
+                newline = theline.Replace(internalAttribute, publicAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
+            else if (theline.ToLowerInvariant().Contains(privateAttribute))
+            {
+                newline = theline.Replace(privateAttribute, publicAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
+            else if (theline.ToLowerInvariant().Contains(protectedAttribute))
+            {
+                newline = theline.Replace(protectedAttribute, publicAttribute);
+                return _input = _input.Replace(theline, newline);
             }
             else
             {
@@ -267,6 +332,11 @@ namespace XmlRefactor
                 else if (theline.ToLowerInvariant().Contains(protectedAttribute))
                 {
                     newline = theline.Replace(protectedAttribute, internalAttribute);
+                    return _input = _input.Replace(theline, newline);
+                }
+                else if (theline.ToLowerInvariant().Contains(privateAttribute))
+                {
+                    newline = theline.Replace(privateAttribute, internalAttribute);
                     return _input = _input.Replace(theline, newline);
                 }
                 else
@@ -309,6 +379,11 @@ namespace XmlRefactor
                     newline = theline.Replace(protectedAttribute, internalAttribute);
                     return _input = _input.Replace(theline, newline);
                 }
+                else if (theline.ToLowerInvariant().Contains(privateAttribute))
+                {
+                    newline = theline.Replace(privateAttribute, internalAttribute);
+                    return _input = _input.Replace(theline, newline);
+                }
                 else
                 {
                     int spaces = theline.Length - theline.TrimStart().Length;
@@ -347,6 +422,11 @@ namespace XmlRefactor
                 newline = theline.Replace(protectedAttribute, privateAttribute);
                 return _input = _input.Replace(theline, newline);
             }
+            else if (theline.ToLowerInvariant().Contains(internalAttribute))
+            {
+                newline = theline.Replace(internalAttribute, privateAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
             else
             {
                 int spaces = theline.Length - theline.TrimStart().Length;
@@ -379,6 +459,11 @@ namespace XmlRefactor
             else if (theline.ToLowerInvariant().Contains(protectedAttribute))
             {
                 newline = theline.Replace(protectedAttribute, internalAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
+            else if (theline.ToLowerInvariant().Contains(privateAttribute))
+            {
+                newline = theline.Replace(privateAttribute, internalAttribute);
                 return _input = _input.Replace(theline, newline);
             }
             else

@@ -19,19 +19,12 @@ encryptionPurpose
 equal
 fieldAccessRight
 fieldBufferAccessRight
-doDelete
-doUpdate
-encryptionPurpose
-equal
-fieldAccessRight
-fieldBufferAccessRight
 findEntityDataSource
 getAllowRedefault
 getDefaultingDependencies
 getExtension
 getPresenseFieldData
 getSQLStatement
-helpField
 initializeEntityDataSource
 initValue
 insert
@@ -111,12 +104,10 @@ mouseMove
 mouseUp
 mouseLeave
 name
-new
 onPropChanged
 paste
 reactBundleName
 resourceBundleName
-run
 selectedMenuOption
 setFastTabSummaryField
 setIsPersonalizedAsMandotory
@@ -129,8 +120,6 @@ sort
 supportsMandatory
 templateId
 toolTip
-update
-doFormCache
 dorefresh
 doReread
 doResearch
@@ -188,7 +177,6 @@ getPartControlById
 getPartControlByName
 getRecordingName
 getRecordingScopeType
-getRecordingName
 getDisplayTarget
 setDisplayTarget
 activate
@@ -196,7 +184,6 @@ addDisplayMethod
 doFormCache
 closeOk
 modified
-initialize
 lookup
 clicked
 runBase

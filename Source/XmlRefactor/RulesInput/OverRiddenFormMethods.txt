@@ -4,6 +4,7 @@ close
 closeCancel
 closed
 closeOk
+copy
 init
 run
 active
@@ -13,9 +14,7 @@ delete
 deleted
 deleting
 executeQuery
-init
 initValue
-leave
 linkActive
 markChanged
 parentTitleFields
@@ -26,12 +25,8 @@ validateWrite
 write
 written
 dataChanged
-jumpRef
-lookup
 lookupReference
-modified
 resolveReference
-validate
 allowPageDeactivate
 canBeEditable
 clicked
@@ -49,3 +44,5 @@ sort
 tabChanged
 textChange
 validate
+removeFilter
+runBase

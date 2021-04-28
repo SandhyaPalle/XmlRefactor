@@ -57,7 +57,7 @@ namespace XmlRefactor
 
         private bool isInternalMethod(string className, string methodName)
         {
-            var tableMethodPath = string.Concat("/Tables/", className, "/Methods/", methodName);
+            var tableMethodPath = string.Concat(className, "/", methodName);
             return internalTableMethodHashSet.Contains(tableMethodPath);
         }
 
@@ -70,6 +70,8 @@ namespace XmlRefactor
             {
                 string methodName = match.Groups[1].Value.Trim();
                 var stringToUpdate = match.Value;
+                string classPath = MetaData.AOTPath("");
+                string className = classPath.Substring(classPath.LastIndexOf("\\") + 1);
 
                 if (methodName != "classDeclaration")
                 {
@@ -88,19 +90,27 @@ namespace XmlRefactor
                     }
                     else if (match.Value.Contains("display "))
                     {
-                        _input = this.replaceAccessModifierForDisplayMethods(_input, stringToUpdate, methodName);
-                        Hits++;
+                        _input = removeAttributeHookableFalse(_input, stringToUpdate, methodName);
+                        if (!this.isInternalMethod(className, methodName))
+                        {
+                            _input = this.replaceAccessModifierForDisplayMethods(_input, stringToUpdate, methodName);
+                            Hits++;
+                        }
+                        else
+                        {
+                            _input = this.replaceAccessModifierForInternalMethods(_input, stringToUpdate, methodName);
+                            Hits++;
+                        }
                     }
-                    else if (match.Value.Contains(" parm"))
+                    else if (methodName.Contains(" parm"))
                     {
+                        _input = removeAttributeHookableFalse(_input, stringToUpdate, methodName);
                         _input = this.replaceAccessModifierForParmMethods(_input, stringToUpdate, methodName);
                         Hits++;
                     }
-                    else if (!match.Value.Contains("extends "))
+                    else if (!match.Value.Contains(" extends "))
                     {
-                        string classPath = MetaData.AOTPath("");
-                        string className = classPath.Substring(classPath.LastIndexOf("\\") + 1);
-
+                        _input = removeAttributeHookableFalse(_input, stringToUpdate, methodName);
                         if (this.isInternalMethod(className, methodName))
                         {
                             _input = this.replaceAccessModifierForInternalMethods(_input, stringToUpdate, methodName);
@@ -194,12 +204,7 @@ namespace XmlRefactor
 
             int signatureLinePosInSource = this.signatureLineStartPos(source, _methodName) + 1;
             string theline = source.Substring(signatureLinePosInSource);
-
-            if (theline.ToLowerInvariant().Contains(privateAttribute))
-            {
-                return _input;
-            }
-
+            
             int attributeEndPosInSource = this.attributeEndPos(source, signatureLinePosInSource);
 
             if (attributeEndPosInSource > 0)
@@ -231,6 +236,21 @@ namespace XmlRefactor
             {
                 return _input;
             }
+            else if (theline.ToLowerInvariant().Contains(internalAttribute))
+            {
+                newline = theline.Replace(internalAttribute, publicAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
+            else if (theline.ToLowerInvariant().Contains(privateAttribute))
+            {
+                newline = theline.Replace(privateAttribute, publicAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
+            else if (theline.ToLowerInvariant().Contains(protectedAttribute))
+            {
+                newline = theline.Replace(protectedAttribute, publicAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
             else
             {
                 int spaces = theline.Length - theline.TrimStart().Length;
@@ -238,6 +258,27 @@ namespace XmlRefactor
                 newline = " ".PadLeft(spaces) + publicAttribute + theline.TrimStart(' ');
                 return _input = _input.Replace(theline, newline);
             }
+        }
+
+        private string removeAttributeHookableFalse(string _input, string source, string _methodName)
+        {
+            if (!source.Contains(hookableAttribute))
+            {
+                return _input;
+            }
+
+            string newline = "";
+            if (source.Contains("[" + hookableAttribute + "]"))
+            {
+                newline = source.Replace("[" + hookableAttribute + "]", "");
+                _input = _input.Replace(source, newline);
+            }
+            else
+            {
+                newline = source.Replace(", " + hookableAttribute, "");
+                _input = _input.Replace(source, newline);
+            }
+            return _input;
         }
 
         private string replaceAccessModifierForDisplayMethods(string _input, string source, string _methodName)
@@ -260,6 +301,11 @@ namespace XmlRefactor
                 else if (theline.ToLowerInvariant().Contains(publicAttribute))
                 {
                     newline = theline.Replace(publicAttribute, internalAttribute);
+                    return _input = _input.Replace(theline, newline);
+                }
+                else if (theline.ToLowerInvariant().Contains(privateAttribute))
+                {
+                    newline = theline.Replace(privateAttribute, internalAttribute);
                     return _input = _input.Replace(theline, newline);
                 }
                 else if (theline.ToLowerInvariant().Contains(protectedAttribute))
@@ -306,6 +352,11 @@ namespace XmlRefactor
                     newline = theline.Replace(protectedAttribute, internalAttribute);
                     return _input = _input.Replace(theline, newline);
                 }
+                else if (theline.ToLowerInvariant().Contains(privateAttribute))
+                {
+                    newline = theline.Replace(privateAttribute, internalAttribute);
+                    return _input = _input.Replace(theline, newline);
+                }
                 else
                 {
                     int spaces = theline.Length - theline.TrimStart().Length;
@@ -343,6 +394,11 @@ namespace XmlRefactor
                 newline = theline.Replace(protectedAttribute, privateAttribute);
                 return _input = _input.Replace(theline, newline);
             }
+            else if (theline.ToLowerInvariant().Contains(internalAttribute))
+            {
+                newline = theline.Replace(internalAttribute, privateAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
             else
             {
                 int spaces = theline.Length - theline.TrimStart().Length;
@@ -375,6 +431,11 @@ namespace XmlRefactor
             else if (theline.ToLowerInvariant().Contains(protectedAttribute))
             {
                 newline = theline.Replace(protectedAttribute, internalAttribute);
+                return _input = _input.Replace(theline, newline);
+            }
+            else if (theline.ToLowerInvariant().Contains(privateAttribute))
+            {
+                newline = theline.Replace(privateAttribute, internalAttribute);
                 return _input = _input.Replace(theline, newline);
             }
             else

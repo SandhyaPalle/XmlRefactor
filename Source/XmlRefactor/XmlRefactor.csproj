@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="RulesInput\OverRiddenProtectedClassMethods.txt" />
     <Content Include="RulesInput\InternalFormMethods.txt" />
     <Content Include="RulesInput\InternalClassMethods.txt" />
     <Content Include="RulesInput\InternalTableMethods.txt" />
@@ -181,7 +182,7 @@
     <Content Include="RulesInput\ObsoleteIn80.txt" />
     <Content Include="RulesInput\ObsoleteIn81.txt" />
     <Content Include="RulesInput\OverRiddenFormMethods.txt" />
-    <Content Include="RulesInput\OverRiddenClassMethods.txt" />
+    <Content Include="RulesInput\OverRiddenPublicClassMethods.txt" />
     <Content Include="RulesInput\OverRiddenTableMethods.txt" />
     <Content Include="RulesInput\PublicMethodsToLockDown1.txt" />
   </ItemGroup>
