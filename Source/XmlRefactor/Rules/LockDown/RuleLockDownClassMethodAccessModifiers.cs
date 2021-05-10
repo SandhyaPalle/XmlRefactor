@@ -117,7 +117,7 @@ namespace XmlRefactor
                             Hits++;
                         }
                     }
-                    else if (methodName.Contains(" parm"))
+                    else if (methodName.Contains("parm"))
                     {
                         _input = removeAttributeHookableFalse(_input, stringToUpdate, methodName);
                         _input = this.replaceAccessModifierForParmMethods(_input, stringToUpdate, methodName);

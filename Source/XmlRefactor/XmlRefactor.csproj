@@ -170,6 +170,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="RulesInput\ExtendedClasses.txt" />
     <Content Include="RulesInput\OverRiddenProtectedClassMethods.txt" />
     <Content Include="RulesInput\InternalFormMethods.txt" />
     <Content Include="RulesInput\InternalClassMethods.txt" />
